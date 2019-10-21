@@ -1,3 +1,4 @@
+use crate::parser::expr::operator::Operator;
 use crate::parser::expr::precedence_group::multiplication::parse_multiplication_level_expression;
 use crate::parser::expr::Expr;
 use nom::{
@@ -24,13 +25,9 @@ pub fn parse_addition_level_expression<'a>(
             ))),
         )),
         |(lhs, vec_rhs)| {
-            vec_rhs
-                .into_iter()
-                .fold(lhs, |acc, (_, op, _, rhs)| match op {
-                    "+" => Expr::Addition(Box::from(acc), Box::from(rhs)),
-                    "-" => Expr::Subtraction(Box::from(acc), Box::from(rhs)),
-                    _ => panic!("invalid op"),
-                })
+            vec_rhs.into_iter().fold(lhs, |acc, (_, op, _, rhs)| {
+                Operator::create_expr(op, acc, rhs)
+            })
         },
     )(i)
 }
