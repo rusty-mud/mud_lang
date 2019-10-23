@@ -1,5 +1,6 @@
 use crate::parser::expr::parse_expression;
 use crate::parser::expr::Expr;
+use nom::error::{VerboseError, VerboseErrorKind};
 // use nom::error::convert_error;
 use nom_locate::LocatedSpan;
 
@@ -12,7 +13,26 @@ pub fn parse<'a>(source: &'a str) -> Result<Expr, String> {
         .map(|(_, expr)| expr)
         .map_err(|err| match err {
             nom::Err::Incomplete(_) => "Incomplete input".to_string(),
-            nom::Err::Error(_e) => "placeholder1".to_string(), //convert_error(source.fragment, e),
-            nom::Err::Failure(_e) => "placeholder2".to_string(), //convert_error(source.fragment, e),
+            nom::Err::Error(e) => convert_error(source, e),
+            nom::Err::Failure(e) => convert_error(source, e),
         })
+}
+
+fn convert_error<'a>(_source: &'a str, verbose_errors: VerboseError<Span<'a>>) -> String {
+    verbose_errors
+        .errors
+        .iter()
+        .fold("".to_owned(), |acc, (_substring, kind)| {
+            format!(
+                "{}\n{}",
+                acc,
+                match kind {
+                    VerboseErrorKind::Char(c) =>
+                        format!("??: expected '{}', got empty input\n\n", c),
+                    VerboseErrorKind::Context(s) => format!("??: in {}, got empty input\n\n", s),
+                    VerboseErrorKind::Nom(e) => format!("??: in {:?}, got empty input\n\n", e),
+                }
+            )
+        })
+        .to_string()
 }
