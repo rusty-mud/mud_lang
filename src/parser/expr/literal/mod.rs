@@ -1,3 +1,4 @@
+use crate::parser::Span;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -18,29 +19,29 @@ pub enum Literal {
     Str(String),
 }
 
-type LiteralResult<'a> = IResult<&'a str, Literal, VerboseError<&'a str>>;
+type LiteralResult<'a> = IResult<Span<'a>, Literal, VerboseError<Span<'a>>>;
 
-fn parse_boolean<'a>(i: &'a str) -> LiteralResult<'a> {
+fn parse_boolean<'a>(i: Span<'a>) -> LiteralResult<'a> {
     alt((
         map(tag("true"), |_| Literal::Bool(true)),
         map(tag("false"), |_| Literal::Bool(false)),
     ))(i)
 }
 
-fn parse_num<'a>(i: &'a str) -> LiteralResult<'a> {
+fn parse_num<'a>(i: Span<'a>) -> LiteralResult<'a> {
     alt((
-        map_res(digit1, |digit_str: &str| {
-            digit_str.parse::<i64>().map(Literal::Num)
+        map_res(digit1, |digit_str: Span| {
+            digit_str.fragment.parse::<i64>().map(Literal::Num)
         }),
-        map_res(preceded(tag("+"), digit1), |digit_str: &str| {
-            digit_str.parse::<i64>().map(Literal::Num)
+        map_res(preceded(tag("+"), digit1), |digit_str: Span| {
+            digit_str.fragment.parse::<i64>().map(Literal::Num)
         }),
-        map(preceded(tag("-"), digit1), |digit_str: &str| {
-            Literal::Num(-1 * digit_str.parse::<i64>().unwrap())
+        map(preceded(tag("-"), digit1), |digit_str: Span| {
+            Literal::Num(-1 * digit_str.fragment.parse::<i64>().unwrap())
         }),
     ))(i)
 }
 
-pub fn parse_literal<'a>(i: &'a str) -> LiteralResult<'a> {
+pub fn parse_literal<'a>(i: Span<'a>) -> LiteralResult<'a> {
     alt((parse_boolean, parse_num))(i)
 }

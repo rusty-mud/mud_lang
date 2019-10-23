@@ -1,4 +1,5 @@
 use crate::parser::expr::precedence_group::addition::parse_addition_level_expression;
+use crate::parser::Span;
 use nom::{combinator::map, error::VerboseError, IResult};
 
 mod literal;
@@ -23,13 +24,13 @@ pub enum Expr {
     Constant(Literal),
 }
 
-type ExprResult<'a> = IResult<&'a str, Expr, VerboseError<&'a str>>;
+type ExprResult<'a> = IResult<Span<'a>, Expr, VerboseError<Span<'a>>>;
 
-fn parse_constant<'a>(i: &'a str) -> IResult<&'a str, Expr, VerboseError<&'a str>> {
+fn parse_constant<'a>(i: Span<'a>) -> IResult<Span<'a>, Expr, VerboseError<Span<'a>>> {
     map(literal::parse_literal, |literal| Expr::Constant(literal))(i)
 }
 
-pub fn parse_expression<'a>(i: &'a str) -> IResult<&'a str, Expr, VerboseError<&'a str>> {
+pub fn parse_expression<'a>(i: Span<'a>) -> IResult<Span<'a>, Expr, VerboseError<Span<'a>>> {
     parse_addition_level_expression(i)
 }
 
