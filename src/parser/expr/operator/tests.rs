@@ -6,6 +6,7 @@ fn can_convert_strings_to_operators() {
     assert_eq!(Operator::from("-"), Operator::Sub);
     assert_eq!(Operator::from("*"), Operator::Mul);
     assert_eq!(Operator::from("/"), Operator::Div);
+    assert_eq!(Operator::from("^"), Operator::Exp);
 }
 
 #[test]
